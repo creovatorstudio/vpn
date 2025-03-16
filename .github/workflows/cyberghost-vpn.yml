@@ -1,4 +1,4 @@
-name: CI with CyberGhost VPN
+name: CI Workflow
 
 on:
   push:
@@ -6,37 +6,26 @@ on:
       - main
 
 jobs:
-steps:
-  - name: Install dependencies
-    run: |
-      apk add --no-cache nodejs npm git
-  - name: Checkout code
-    uses: actions/checkout@v3
-  - name: Install project dependencies
-    run: |
-      npm install
-  - name: Run tests
-    run: |
-      npm test
-  vpn-job:
+  build:
     runs-on: ubuntu-latest
-    container:
-      image: qmcgaw/gluetun
-      options: --cap-add=NET_ADMIN --device /dev/net/tun
-    env:
-      VPN_SERVICE_PROVIDER: cyberghost
-      OPENVPN_USER: ${{ secrets.CYBERGHOST_USER }}
-      OPENVPN_PASSWORD: ${{ secrets.CYBERGHOST_PASSWORD }}
-      SERVER_COUNTRIES: Netherlands  # Change to your desired country
     steps:
-      - name: Install dependencies
-        run: |
-          apk add --no-cache python3 py3-pip git
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Install test dependencies
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Change to your desired version (e.g., '3.8', '3.9')
+
+      - name: Create virtual environment
+        run: python3 -m venv myenv
+
+      - name: Install dependencies
         run: |
-          pip3 install pytest
+          source myenv/bin/activate
+          pip install -r requirements.txt  # Replace with your dependency installation command
+
       - name: Run tests
         run: |
-          pytest
+          source myenv/bin/activate
+          pytest  # Replace with your test or build command
